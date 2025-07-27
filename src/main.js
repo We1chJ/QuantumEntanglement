@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise'
 
 const scene = new THREE.Scene()
@@ -9,8 +8,6 @@ camera.position.z = 5
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
-
-const controls = new OrbitControls(camera, renderer.domElement)
 
 // Particle count
 const PARTICLE_COUNT = 30000
@@ -42,7 +39,15 @@ for (let i = 0; i < PARTICLE_COUNT; i++) {
 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
 
 // Material and points
-const material = new THREE.PointsMaterial({ color: 0x88ccff, size: 0.03 })
+const material = new THREE.PointsMaterial({
+  color: 0x88ccff,
+  size: 0.05,
+  sizeAttenuation: true,
+  depthTest: false,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  transparent: true,
+})
 const points = new THREE.Points(geometry, material)
 scene.add(points)
 
@@ -87,6 +92,9 @@ function animate() {
   requestAnimationFrame(animate)
   time += 0.005
 
+  // Slowly rotate the whole particle system around Y axis (vertical axis)
+  points.rotation.y += 0.002  // Adjust speed as needed
+
   const positions = geometry.attributes.position.array
 
   for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -114,7 +122,7 @@ function animate() {
       dir.x * 5 + time * 2,
       dir.y * 5 + time * 2,
       dir.z * 5 + time * 2
-    ) * 0.3 // tweak 0.1 for more/less offset
+    ) * 0.9
 
     // New radius with noise offset
     const r = radius + offset
@@ -129,7 +137,6 @@ function animate() {
   }
 
   geometry.attributes.position.needsUpdate = true
-  controls.update()
   renderer.render(scene, camera)
 }
 
